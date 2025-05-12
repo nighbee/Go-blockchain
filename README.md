@@ -1,70 +1,92 @@
-# Getting Started with Create React App
+# Blockchain Server
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Go](https://img.shields.io/badge/Go-1.20-blue)
+![React](https://img.shields.io/badge/React-18.2.0-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## Available Scripts
+## 📖 Описание
 
-In the project directory, you can run:
+Этот проект представляет собой сервер блокчейна, реализованный на языке Go с использованием React для фронтенда. Он поддерживает создание блоков, майнинг, регистрацию кошельков и управление транзакциями.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Основные возможности
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Майнинг блоков**: Автоматическое добавление транзакций в блоки.
+- **Регистрация кошельков**: Создание новых кошельков с уникальными адресами.
+- **Управление транзакциями**: Добавление и проверка транзакций.
+- **Консенсус**: Разрешение конфликтов между узлами.
+- **API**: REST API для взаимодействия с блокчейном.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Технологии
 
-### `npm run build`
+- **Backend**: Go
+- **Frontend**: React
+- **HTTP Framework**: Gorilla Mux
+- **Криптография**: Подписи и хеширование для безопасности.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📂 Структура проекта
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```plaintext
+├── block/
+│   ├── blockchain.go       # Логика блокчейна
+│   ├── mining.go           # Майнинг и Proof-of-Work
+│   ├── transaction.go      # Управление транзакциями
+├── server/
+│   ├── handlers/           # Обработчики API
+│   ├── middleware/         # Middleware для CORS и логирования
+├── struct/
+│   ├── wallet/             # Логика кошельков
+│   ├── utils/              # Утилиты
+├── main.go                 # Точка входа
+├── go.mod                  # Зависимости Go
+├── package.json            # Зависимости React
 
-### `npm run eject`
+📦 Установка и запуск
+Backend
+Установите Go.
+Клонируйте репозиторий:
+git clone https://github.com/ваш-аккаунт/blockchain-server.git
+cd blockchain-server
+Установите зависимости:
+go mod tidy
+Запустите сервер:
+go run main.go
+Frontend
+Перейдите в папку фронтенда:
+cd frontend
+Установите зависимости:
+npm install
+Запустите React-приложение:
+npm start
+<hr></hr>
+📖 API Документация
+Основные эндпоинты
+GET /chain: Получить текущую цепочку блоков.
+POST /transactions: Добавить новую транзакцию.
+GET /balance: Получить баланс кошелька.
+PUT /consensus: Запустить процесс консенсуса.
+Пример запроса:
+curl -X POST http://localhost:5001/transactions \
+-H "Content-Type: application/json" \
+-d '{
+  "sender": "sender_1",
+  "recipient": "recipient_1",
+  "amount": 10.0
+}'
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+🧪 Тестирование
+Запустите сервер.
+Используйте curl или Postman для тестирования API.
+Убедитесь, что транзакции добавляются, а блоки майнятся корректно.
+<hr></hr>
+🤝 Вклад
+Будем рады вашему вкладу! Открывайте issues или создавайте pull requests.  <hr></hr>
+📜 Лицензия
+Этот проект распространяется под лицензией MIT.<hr></hr>
+📧 Контакты
+Автор: Almaz Toktassin
