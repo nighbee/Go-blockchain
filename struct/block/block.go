@@ -82,7 +82,7 @@ func (b *Block) Hash() [32]byte {
 func (b *Block) MarshalJSON() ([]byte, error) {
 	transactions := b.transactions
 	if transactions == nil {
-		transactions = []*Transaction{} // Ensure transactions is an empty array if nil
+		transactions = []*Transaction{}
 	}
 	return json.Marshal(struct {
 		Timestamp    int64          `json:"timestamp"`
