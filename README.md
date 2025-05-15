@@ -1,70 +1,121 @@
-# Getting Started with Create React App
+# Blockchain Server
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Go](https://img.shields.io/badge/Go-1.20-blue)
+![React](https://img.shields.io/badge/React-18.2.0-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## Available Scripts
+## 📖 Описание
 
-In the project directory, you can run:
+Blockchain Server — это серверная реализация блокчейна на языке Go с фронтендом на React. Проект поддерживает создание блоков, майнинг, регистрацию кошельков и управление транзакциями с помощью REST API.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Основные возможности
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- 🔗 **Майнинг блоков** — автоматическое добавление транзакций и генерация новых блоков.
+- 👛 **Регистрация кошельков** — создание новых кошельков с уникальными адресами.
+- 💸 **Управление транзакциями** — создание, валидация и добавление транзакций в цепочку.
+- 🤝 **Консенсус** — разрешение конфликтов между узлами сети.
+- 📡 **REST API** — удобное взаимодействие с сервером.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Технологии
 
-### `npm run build`
+- **Backend**: Go
+- **Frontend**: React
+- **HTTP Framework**: Gorilla Mux
+- **Криптография**: Хеширование и цифровые подписи для безопасности транзакций
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📂 Структура проекта
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```plaintext
+├── block/
+│   ├── blockchain.go       # Логика блокчейна
+│   ├── mining.go           # Proof-of-Work
+│   ├── transaction.go      # Транзакции
+├── server/
+│   ├── handlers/           # Обработчики API
+│   ├── middleware/         # CORS и логгеры
+├── struct/
+│   ├── wallet/             # Кошельки
+│   ├── utils/              # Вспомогательные функции
+├── main.go                 # Точка входа
+├── go.mod                  # Зависимости Go
+├── frontend/
+│   ├── package.json        # Зависимости React
 
-### `npm run eject`
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+📦 Установка и запуск
+Backend
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    Установите Go.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+    Клонируйте репозиторий:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+git clone https://github.com/ваш-аккаунт/blockchain-server.git
+cd blockchain-server
 
-## Learn More
+Установите зависимости:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+go mod tidy
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Запустите сервер:
 
-### Code Splitting
+    go run main.go
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Frontend
 
-### Analyzing the Bundle Size
+    Перейдите в директорию фронтенда:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+cd frontend
 
-### Making a Progressive Web App
+Установите зависимости:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+npm install
 
-### Advanced Configuration
+Запустите приложение:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+    npm start
 
-### Deployment
+📖 API Документация
+Основные эндпоинты
+Метод	Эндпоинт	Описание
+GET	/chain	Получить текущую цепочку блоков
+POST	/transactions	Добавить новую транзакцию
+GET	/balance	Получить баланс кошелька
+PUT	/consensus	Запустить процесс консенсуса
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Пример запроса:
+```
+curl -X POST http://localhost:5001/transactions \
+-H "Content-Type: application/json" \
+-d '{
+  "sender": "sender_1",
+  "recipient": "recipient_1",
+  "amount": 10.0
+}'
+```
+🧪 Тестирование
 
-### `npm run build` fails to minify
+    Запустите сервер.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    Используйте curl или Postman для тестирования REST API.
+
+    Проверьте корректность транзакций и майнинга.
+
+🤝 Вклад
+
+Будем рады вашему участию!
+Создавайте issues или отправляйте pull requests.
+📜 Лицензия
+
+Проект распространяется под лицензией MIT.
+📧 Контакты
+
+Автор: Almaz Toktassin
+📬 Email: almaztok8@gmail.com
+💻 GitHub: nighbee
