@@ -159,8 +159,18 @@ func (bc *Blockchain) GetWallets() []string {
 	// Iterate through all blocks and transactions to collect wallet addresses
 	for _, block := range bc.chain {
 		for _, tx := range block.transactions {
-			walletMap[tx.senderBlockchainAddress] = true
-			walletMap[tx.recipientBlockchainAddress] = true
+			// Skip system addresses
+			if tx.senderBlockchainAddress == MINING_SENDER ||
+				tx.senderBlockchainAddress == "THE BLOCKCHAIN" ||
+				tx.recipientBlockchainAddress == MINING_SENDER ||
+				tx.recipientBlockchainAddress == "THE BLOCKCHAIN" {
+				continue
+			}
+
+			// Only include wallets that were registered with "REGISTER USER WALLET" message
+			if tx.message == "REGISTER USER WALLET" {
+				walletMap[tx.recipientBlockchainAddress] = true
+			}
 		}
 	}
 
@@ -178,4 +188,24 @@ func (bc *Blockchain) GetNeighbors() []string {
 	bc.muxNeighbors.Lock()
 	defer bc.muxNeighbors.Unlock()
 	return bc.neighbors
+}
+
+// Reset resets the blockchain to its initial state
+func (bc *Blockchain) Reset() {
+	// Lock the blockchain while resetting
+	bc.mux.Lock()
+	defer bc.mux.Unlock()
+
+	// Clear the chain and transaction pool
+	bc.chain = []*Block{}
+	bc.transactionPool = []*Transaction{}
+
+	// Create a new genesis block
+	b := &Block{}
+	bc.CreateBlock([]*Transaction{}, b.GetHash())
+
+	// Save the reset blockchain
+	if err := bc.SaveBlockchain(); err != nil {
+		log.Printf("ERROR: Failed to save reset blockchain: %v", err)
+	}
 }
