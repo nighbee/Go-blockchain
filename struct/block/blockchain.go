@@ -29,7 +29,7 @@ func NewBlockchain(blockchainAddress string, port uint16) *Blockchain {
 	b := &Block{}
 	bc := new(Blockchain)
 	bc.blockchainAddress = blockchainAddress
-	bc.CreateBlock(0, b.Hash())
+	bc.CreateBlock([]*Transaction{}, b.GetHash())
 	bc.port = port
 	return bc
 }
@@ -46,8 +46,8 @@ func (bc *Blockchain) Run() {
 	bc.StartMining() // Start mining automatically
 }
 
-func (bc *Blockchain) CreateBlock(nonce int, previousHash [32]byte) *Block {
-	b := NewBlock(nonce, previousHash, bc.transactionPool)
+func (bc *Blockchain) CreateBlock(transactions []*Transaction, previousHash string) *Block {
+	b := NewBlock(transactions, previousHash)
 	bc.chain = append(bc.chain, b)
 	bc.transactionPool = []*Transaction{}
 	for _, n := range bc.neighbors {
@@ -109,4 +109,73 @@ func (bc *Blockchain) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	return nil
+}
+
+// MineBlock creates a new block with pending transactions and rewards the miner
+func (bc *Blockchain) MineBlock(minerAddress string) (bool, error) {
+	// Lock the blockchain while mining
+	bc.mux.Lock()
+	defer bc.mux.Unlock()
+
+	// Get the last block
+	lastBlock := bc.chain[len(bc.chain)-1]
+
+	// Create a new block with current transactions
+	newBlock := NewBlock(bc.transactionPool, lastBlock.GetHash())
+
+	// Add mining reward transaction
+	rewardTx := &Transaction{
+		senderBlockchainAddress:    MINING_SENDER,
+		recipientBlockchainAddress: minerAddress,
+		value:                      MINING_REWARD,
+		message:                    "MINING REWARD",
+	}
+	newBlock.transactions = append(newBlock.transactions, rewardTx)
+
+	// Mine the block (find a valid hash)
+	for {
+		hash := newBlock.CalculateHash()
+		newBlock.SetHash(hash)
+		if newBlock.IsValidHash() {
+			break
+		}
+		newBlock.SetNonce(newBlock.GetNonce() + 1)
+	}
+
+	// Add the new block to the chain
+	bc.chain = append(bc.chain, newBlock)
+
+	// Clear the transaction pool
+	bc.transactionPool = []*Transaction{}
+
+	return true, nil
+}
+
+// GetWallets returns a list of all registered wallet addresses in the blockchain
+func (bc *Blockchain) GetWallets() []string {
+	// Use a map to store unique wallet addresses
+	walletMap := make(map[string]bool)
+
+	// Iterate through all blocks and transactions to collect wallet addresses
+	for _, block := range bc.chain {
+		for _, tx := range block.transactions {
+			walletMap[tx.senderBlockchainAddress] = true
+			walletMap[tx.recipientBlockchainAddress] = true
+		}
+	}
+
+	// Convert map to slice
+	wallets := make([]string, 0, len(walletMap))
+	for wallet := range walletMap {
+		wallets = append(wallets, wallet)
+	}
+
+	return wallets
+}
+
+// GetNeighbors returns the list of connected nodes
+func (bc *Blockchain) GetNeighbors() []string {
+	bc.muxNeighbors.Lock()
+	defer bc.muxNeighbors.Unlock()
+	return bc.neighbors
 }

@@ -2,9 +2,9 @@ package block
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -32,48 +32,85 @@ const (
 // Block represents a block in the blockchain.
 type Block struct {
 	timestamp    int64
-	nonce        int
-	previousHash [32]byte
 	transactions []*Transaction
+	prevHash     string
+	hash         string
+	nonce        int
 }
 
 // NewBlock creates a new block with the given parameters.
-func NewBlock(nonce int, previousHash [32]byte, transactions []*Transaction) *Block {
-	b := new(Block)
-	b.timestamp = time.Now().UnixNano()
-	b.nonce = nonce
-	b.previousHash = previousHash
-	b.transactions = transactions
-	return b
+func NewBlock(transactions []*Transaction, prevHash string) *Block {
+	return &Block{
+		timestamp:    time.Now().Unix(),
+		transactions: transactions,
+		prevHash:     prevHash,
+		hash:         "",
+		nonce:        0,
+	}
 }
 
 // Accessor methods for the Block attributes.
-func (b *Block) PreviousHash() [32]byte {
-	return b.previousHash
+func (b *Block) CalculateHash() string {
+	m, err := json.Marshal(struct {
+		Timestamp    int64          `json:"timestamp"`
+		Transactions []*Transaction `json:"transactions"`
+		PrevHash     string         `json:"prevHash"`
+		Nonce        int            `json:"nonce"`
+	}{
+		Timestamp:    b.timestamp,
+		Transactions: b.transactions,
+		PrevHash:     b.prevHash,
+		Nonce:        b.nonce,
+	})
+	if err != nil {
+		log.Printf("ERROR: Failed to marshal block: %v", err)
+		return ""
+	}
+
+	hash := sha256.Sum256(m)
+	return fmt.Sprintf("%x", hash)
 }
 
-func (b *Block) Nonce() int {
+func (b *Block) IsValidHash() bool {
+	return b.hash[:2] == "00"
+}
+
+func (b *Block) GetHash() string {
+	return b.hash
+}
+
+func (b *Block) GetPrevHash() string {
+	return b.prevHash
+}
+
+func (b *Block) GetTransactions() []*Transaction {
+	return b.transactions
+}
+
+func (b *Block) GetTimestamp() int64 {
+	return b.timestamp
+}
+
+func (b *Block) GetNonce() int {
 	return b.nonce
 }
 
-func (b *Block) Transactions() []*Transaction {
-	return b.transactions
+func (b *Block) SetHash(hash string) {
+	b.hash = hash
+}
+
+func (b *Block) SetNonce(nonce int) {
+	b.nonce = nonce
 }
 
 // Print displays the block's attributes.
 func (b *Block) Print() {
 	fmt.Printf("timestamp       %d\n", b.timestamp)
 	fmt.Printf("nonce           %d\n", b.nonce)
-	fmt.Printf("previousHash   %x\n", b.previousHash)
+	fmt.Printf("previousHash   %s\n", b.prevHash)
 	for _, t := range b.transactions {
 		t.Print()
 	}
-}
-
-// Hash computes and returns the SHA-256 hash of the block.
-func (b *Block) Hash() [32]byte {
-	m, _ := json.Marshal(b)
-	return sha256.Sum256([]byte(m))
 }
 
 // JSON Handling for Block
@@ -86,35 +123,32 @@ func (b *Block) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(struct {
 		Timestamp    int64          `json:"timestamp"`
-		Nonce        int            `json:"nonce"`
-		PreviousHash string         `json:"previousHash"`
 		Transactions []*Transaction `json:"transactions"`
+		PrevHash     string         `json:"prevHash"`
+		Nonce        int            `json:"nonce"`
 	}{
 		Timestamp:    b.timestamp,
-		Nonce:        b.nonce,
-		PreviousHash: fmt.Sprintf("%x", b.previousHash),
 		Transactions: transactions,
+		PrevHash:     b.prevHash,
+		Nonce:        b.nonce,
 	})
 }
 
 // UnmarshalJSON customizes the JSON decoding of the block.
 func (b *Block) UnmarshalJSON(data []byte) error {
-	var previousHash string
 	v := &struct {
 		Timestamp    *int64          `json:"timestamp"`
-		Nonce        *int            `json:"nonce"`
-		PreviousHash *string         `json:"previousHash"`
 		Transactions *[]*Transaction `json:"transactions"`
+		PrevHash     *string         `json:"prevHash"`
+		Nonce        *int            `json:"nonce"`
 	}{
 		Timestamp:    &b.timestamp,
-		Nonce:        &b.nonce,
-		PreviousHash: &previousHash,
 		Transactions: &b.transactions,
+		PrevHash:     &b.prevHash,
+		Nonce:        &b.nonce,
 	}
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
-	ph, _ := hex.DecodeString(*v.PreviousHash)
-	copy(b.previousHash[:], ph[:32])
 	return nil
 }

@@ -6,11 +6,12 @@ import (
 	"block/struct/block"
 	"block/struct/utils"
 	"block/struct/wallet"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 var cache map[string]*block.Blockchain = make(map[string]*block.Blockchain)
@@ -34,6 +35,7 @@ func NewBlockchainServer(port uint16) *BlockchainServer {
 		Wallet: nil,
 	}
 }
+
 func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
 	bc, ok := cache["blockchain"]
 	if !ok {
@@ -98,13 +100,14 @@ func (bcs *BlockchainServer) Run() {
 	router.HandleFunc("/chain", handler.GetChain)
 	router.HandleFunc("/balance", handler.Balance)
 	router.HandleFunc("/consensus", handler.Consensus)
-	router.HandleFunc("/mine", handler.Mine)
+	router.HandleFunc("/mine", handler.HandleMine)
 	router.HandleFunc("/mine/start", handler.StartMine)
 	router.HandleFunc("/miner/blocks", handler.GetBlocks)
 	router.HandleFunc("/miner/wallet", handler.MinerWallet)
 	router.HandleFunc("/transactions", handler.Transactions)
 	router.HandleFunc("/wallet/register", handler.RegisterWallet)
-
+	router.HandleFunc("/nodes", handler.GetNodes)
+	router.HandleFunc("/sign", handler.HandleSign).Methods("POST")
 	// Chain middlewares: enableCORS -> LoggingMiddleware
 	corsAndLoggingHandler := middleware.LoggingMiddleware(enableCORS(router))
 

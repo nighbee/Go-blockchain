@@ -33,7 +33,7 @@ export const createWallet = async (blockchainAddress = '') => {
         }
         const data = await response.json();
         console.log('Wallet created:', data);
-        return data; // Return full wallet object: { address, public_key, private_key }
+        return data;
     } catch (error) {
         console.error('Create wallet error:', error);
         throw error;
@@ -62,3 +62,23 @@ export const createTransaction = async (transactionData) => {
         throw error;
     }
 };
+
+export const getNodes = async () => {
+    try {
+        const response = await fetch('http://localhost:5001/nodes', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status} :: GET /nodes`);
+        }
+        const data = await response.json();
+        console.log('Nodes data:', data);
+        return data;
+    } catch (error) {
+        console.error('Fetch nodes error:', error);
+        throw error;
+    }
+}; 

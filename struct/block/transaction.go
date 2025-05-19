@@ -4,6 +4,7 @@ import (
 	"block/struct/utils"
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -43,8 +44,13 @@ func (bc *Blockchain) AddTransaction(sender string,
 	senderPublicKey *ecdsa.PublicKey,
 	s *utils.Signature) (bool, error) {
 
-	// Create a new transaction
-	t := NewTransaction(message, recipient, sender, value)
+	// Create a new transaction with the correct field order
+	t := &Transaction{
+		senderBlockchainAddress:    sender,
+		recipientBlockchainAddress: recipient,
+		message:                    message,
+		value:                      value,
+	}
 
 	// If the sender is the mining address, add the transaction to the pool and return true
 	if sender == MINING_SENDER {
@@ -136,7 +142,12 @@ func (bc *Blockchain) CopyTransactionPool() []*Transaction {
 
 // NewTransaction creates a new transaction.
 func NewTransaction(sender string, recipient string, message string, value float32) *Transaction {
-	return &Transaction{sender, recipient, message, value}
+	return &Transaction{
+		senderBlockchainAddress:    sender,
+		recipientBlockchainAddress: recipient,
+		message:                    message,
+		value:                      value,
+	}
 }
 
 // Get the transaction pool the Blockchain
@@ -156,25 +167,30 @@ func (tr *TransactionRequest) Validate() bool {
 	}
 	return true
 }
-
-// Verify the signature of the transaction
-// func (bc *Blockchain) VerifyTransactionSignature(
-//
-//		senderPublicKey *ecdsa.PublicKey,
-//		s *utils.Signature,
-//		t *Transaction) bool {
-//
-//		m, _ := json.Marshal(t)
-//
-//		log.Println("Validate signature", string(m))
-//
-//		h := sha256.Sum256([]byte(m))
-//		return ecdsa.Verify(senderPublicKey, h[:], s.R, s.S)
-//	}
-//
-// struct/block/transaction.go
 func (bc *Blockchain) VerifyTransactionSignature(senderPublicKey *ecdsa.PublicKey, s *utils.Signature, t *Transaction) bool {
-	return true // Temporary bypass for demo
+	// Create a hash of the transaction data
+	m, err := json.Marshal(t)
+	if err != nil {
+		log.Printf("ERROR: Failed to marshal transaction for verification: %v", err)
+		return false
+	}
+
+	// Log the exact data being verified
+	log.Printf("Verifying transaction data: %s", string(m))
+
+	hash := sha256.Sum256(m)
+	log.Printf("Verification hash: %x", hash)
+
+	// Log the signature components
+	log.Printf("Verifying signature R: %x", s.R)
+	log.Printf("Verifying signature S: %x", s.S)
+
+	verified := ecdsa.Verify(senderPublicKey, hash[:], s.R, s.S)
+	if !verified {
+		log.Printf("ERROR: Signature verification failed for publicKey: %x, signature: %s", senderPublicKey, s.String())
+		log.Printf("Public key components - X: %x, Y: %x", senderPublicKey.X, senderPublicKey.Y)
+	}
+	return verified
 }
 
 // Print outputs the details of the transaction.

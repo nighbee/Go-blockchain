@@ -18,43 +18,50 @@ func (s *Signature) String() string {
 }
 
 // String2BigIntTuple converts a hexadecimal string into a tuple of big integers.
-// The input string is expected to have a length of 128 characters (64 characters for x and 64 characters for y).
-// It returns the tuple (x, y) as pointers to big.Int values.
-func String2BigIntTuple(s string) (big.Int, big.Int) {
-	// Decode the first 64 characters of the string into bytes.
-	bx, _ := hex.DecodeString(s[:64])
-	by, _ := hex.DecodeString(s[64:])
-
-	var bix big.Int
-	var biy big.Int
-
-	// Set the value of bix bix to the big integer representation of bx & by.
-	_ = bix.SetBytes(bx)
-	_ = biy.SetBytes(by)
-
-	// Return the pointers to bix and biy.
-	return bix, biy
-}
-
-func SignatureFromString(s string) *Signature {
-	x, y := String2BigIntTuple(s)
-
-	return &Signature{
-		&x,
-		&y,
+// The input string must be a 128-character hex string (64 bytes when decoded).
+func String2BigIntTuple(s string) (*big.Int, *big.Int, error) {
+	if len(s) != 128 {
+		return nil, nil, fmt.Errorf("invalid public key length: got %d characters, expected 128", len(s))
 	}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to decode hex string: %v", err)
+	}
+	if len(b) != 64 {
+		return nil, nil, fmt.Errorf("invalid decoded public key length: got %d bytes, expected 64", len(b))
+	}
+	x := new(big.Int).SetBytes(b[:32])
+	y := new(big.Int).SetBytes(b[32:64])
+	return x, y, nil
 }
 
-// Create a public key from a string.
-func PublicKeyFromString(s string) *ecdsa.PublicKey {
-	x, y := String2BigIntTuple(s)
-	return &ecdsa.PublicKey{Curve: elliptic.P256(), X: &x, Y: &y}
+func SignatureFromString(s string) (*Signature, error) {
+	if len(s) != 128 {
+		return nil, fmt.Errorf("invalid signature length: got %d characters, expected 128", len(s))
+	}
+	x, y, err := String2BigIntTuple(s)
+	if err != nil {
+		return nil, err
+	}
+	return &Signature{R: x, S: y}, nil
 }
 
-// Create a private key from a string.
-func PrivateKeyFromString(s string, publicKey *ecdsa.PublicKey) *ecdsa.PrivateKey {
-	b, _ := hex.DecodeString(s)
+// PublicKeyFromString converts a hex string to an ECDSA public key.
+func PublicKeyFromString(s string) (*ecdsa.PublicKey, error) {
+	x, y, err := String2BigIntTuple(s)
+	if err != nil {
+		return nil, err
+	}
+	return &ecdsa.PublicKey{Curve: elliptic.P256(), X: x, Y: y}, nil
+}
+
+// PrivateKeyFromString converts a hex string to an ECDSA private key.
+func PrivateKeyFromString(s string, publicKey *ecdsa.PublicKey) (*ecdsa.PrivateKey, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode private key: %v", err)
+	}
 	var bi big.Int
-	_ = bi.SetBytes(b)
-	return &ecdsa.PrivateKey{PublicKey: *publicKey, D: &bi}
+	bi.SetBytes(b)
+	return &ecdsa.PrivateKey{PublicKey: *publicKey, D: &bi}, nil
 }

@@ -38,9 +38,8 @@ func (bc *Blockchain) Mining() bool {
 	}
 
 	// Find a new proof of work and create a new block
-	nonce := bc.ProofOfWork()
-	previousHash := bc.LastBlock().Hash()
-	bc.CreateBlock(nonce, previousHash)
+	previousHash := bc.LastBlock().GetHash()
+	bc.CreateBlock(bc.transactionPool, previousHash)
 
 	// Log a successful mining operation
 	// #debug
@@ -77,17 +76,18 @@ func (bc *Blockchain) StartMining() {
 }
 
 // ValidProof validates the proof of work.
-func (bc *Blockchain) ValidProof(nonce int, previousHash [32]byte, transactions []*Transaction, difficulty int) bool {
+func (bc *Blockchain) ValidProof(nonce int, previousHash string, transactions []*Transaction, difficulty int) bool {
 	zeros := strings.Repeat("0", difficulty)
-	guessBlock := Block{0, nonce, previousHash, transactions}
-	guessHashStr := fmt.Sprintf("%x", guessBlock.Hash())
-	return guessHashStr[:difficulty] == zeros
+	guessBlock := NewBlock(transactions, previousHash)
+	guessBlock.SetNonce(nonce)
+	guessHash := guessBlock.CalculateHash()
+	return strings.HasPrefix(guessHash, zeros)
 }
 
 // ProofOfWork finds the proof of work.
 func (bc *Blockchain) ProofOfWork() int {
 	transactions := bc.CopyTransactionPool()
-	previousHash := bc.LastBlock().Hash()
+	previousHash := bc.LastBlock().GetHash()
 	nonce := 0
 	for !bc.ValidProof(nonce, previousHash, transactions, MINING_DIFFICULTY) {
 		nonce += 1
@@ -101,11 +101,11 @@ func (bc *Blockchain) ValidChain(chain []*Block) bool {
 	currentIndex := 1
 	for currentIndex < len(chain) {
 		b := chain[currentIndex]
-		if b.previousHash != preBlock.Hash() {
+		if b.GetPrevHash() != preBlock.GetHash() {
 			return false
 		}
 
-		if !bc.ValidProof(b.Nonce(), b.PreviousHash(), b.Transactions(), MINING_DIFFICULTY) {
+		if !bc.ValidProof(b.GetNonce(), b.GetPrevHash(), b.GetTransactions(), MINING_DIFFICULTY) {
 			return false
 		}
 
