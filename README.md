@@ -4,118 +4,187 @@
 ![React](https://img.shields.io/badge/React-18.2.0-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 📖 Описание
+## �� Description
 
-Blockchain Server — это серверная реализация блокчейна на языке Go с фронтендом на React. Проект поддерживает создание блоков, майнинг, регистрацию кошельков и управление транзакциями с помощью REST API.
-
----
-
-## 🚀 Основные возможности
-
-- 🔗 **Майнинг блоков** — автоматическое добавление транзакций и генерация новых блоков.
-- 👛 **Регистрация кошельков** — создание новых кошельков с уникальными адресами.
-- 💸 **Управление транзакциями** — создание, валидация и добавление транзакций в цепочку.
-- 🤝 **Консенсус** — разрешение конфликтов между узлами сети.
-- 📡 **REST API** — удобное взаимодействие с сервером.
+Blockchain Server is a blockchain implementation in Go with a React frontend. The project supports block creation, mining, wallet registration, and transaction management through REST API. A key feature is the ability to save blockchain state to a JSON file and reset the blockchain to its initial state.
 
 ---
 
-## 🛠️ Технологии
+## �� Key Features
+
+- 🔗 **Block Mining** — creation of new blocks with transactions and mining rewards
+- 👛 **Wallet Management** — registration and tracking of wallets in the blockchain
+- �� **Transactions** — creation and validation of transactions between wallets
+- 🔄 **State Persistence** — automatic saving of blockchain state to JSON file
+- 🗑️ **Blockchain Reset** — ability to reset to initial state
+- 🤝 **Consensus** — conflict resolution between network nodes
+- 🌐 **REST API** — comprehensive API for blockchain interaction
+- �� **Security** — ECDSA signatures for transaction validation
+- 📊 **Real-time Updates** — live blockchain state monitoring
+
+---
+
+## 🛠️ Technologies
 
 - **Backend**: Go
 - **Frontend**: React
 - **HTTP Framework**: Gorilla Mux
-- **Криптография**: Хеширование и цифровые подписи для безопасности транзакций
+- **Data Storage**: JSON files
+- **Cryptography**: ECDSA for transaction signing
+- **API**: RESTful architecture
 
 ---
 
-## 📂 Структура проекта
+## 📂 Project Structure
 
 ```plaintext
-├── block/
-│   ├── blockchain.go       # Логика блокчейна
-│   ├── mining.go           # Proof-of-Work
-│   ├── transaction.go      # Транзакции
-├── server/
-│   ├── handlers/           # Обработчики API
-│   ├── middleware/         # CORS и логгеры
 ├── struct/
-│   ├── wallet/             # Кошельки
-│   ├── utils/              # Вспомогательные функции
-├── main.go                 # Точка входа
-├── go.mod                  # Зависимости Go
-├── frontend/
-│   ├── package.json        # Зависимости React
-
+│   ├── block/             # Blockchain logic
+│   │   ├── blockchain.go  # Core blockchain logic
+│   │   ├── mining.go      # Block mining
+│   │   ├── transaction.go # Transactions
+│   │   └── storage.go     # State persistence
+│   ├── wallet/            # Wallet implementation
+│   └── utils/             # Utility functions
+├── server/
+│   ├── handlers/          # API handlers
+│   └── middleware/        # CORS and logging
+├── src/                   # Frontend React application
+├── data/                  # Blockchain data storage
+├── main.go               # Entry point
+└── go.mod                # Go dependencies
 ```
 
-📦 Установка и запуск
-Backend
+---
 
-    Установите Go.
+## 📦 Installation and Setup
 
-    Клонируйте репозиторий:
+### Backend
 
-git clone https://github.com/ваш-аккаунт/blockchain-server.git
+1. Install Go
+2. Clone the repository:
+```bash
+git clone https://github.com/your-username/blockchain-server.git
 cd blockchain-server
-
-Установите зависимости:
-
-go mod tidy
-
-Запустите сервер:
-
-    go run main.go
-
-Frontend
-
-    Перейдите в директорию фронтенда:
-
-cd frontend
-
-Установите зависимости:
-
-npm install
-
-Запустите приложение:
-
-    npm start
-
-📖 API Документация
-Основные эндпоинты
-Метод	Эндпоинт	Описание
-GET	/chain	Получить текущую цепочку блоков
-POST	/transactions	Добавить новую транзакцию
-GET	/balance	Получить баланс кошелька
-PUT	/consensus	Запустить процесс консенсуса
-
-Пример запроса:
 ```
+
+3. Install dependencies:
+```bash
+go mod tidy
+```
+
+4. Start the server:
+```bash
+go run main.go
+```
+
+### Frontend
+
+1. Navigate to src directory:
+```bash
+cd src
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the application:
+```bash
+npm start
+```
+
+---
+
+## 📖 API Documentation
+
+### REST API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /chain | Get current blockchain |
+| GET | /wallets | Get list of registered wallets |
+| POST | /wallet/register | Register new wallet |
+| POST | /transactions | Add new transaction |
+| GET | /balance | Get wallet balance |
+| POST | /mine | Mine new block |
+| POST | /reset | Reset blockchain to initial state |
+| GET | /consensus | Run consensus process |
+| GET | /nodes | Get connected nodes |
+| POST | /sign | Sign transaction |
+
+### API Examples
+
+Register a wallet:
+```bash
+curl -X POST http://localhost:5001/wallet/register \
+-H "Content-Type: application/json"
+```
+
+Create a transaction:
+```bash
 curl -X POST http://localhost:5001/transactions \
 -H "Content-Type: application/json" \
 -d '{
-  "sender": "sender_1",
-  "recipient": "recipient_1",
-  "amount": 10.0
+  "sender": "sender_address",
+  "recipient": "recipient_address",
+  "value": 10.0,
+  "message": "Payment"
 }'
 ```
-🧪 Тестирование
 
-    Запустите сервер.
+Reset blockchain:
+```bash
+curl -X POST http://localhost:5001/reset
+```
 
-    Используйте curl или Postman для тестирования REST API.
+Get wallet balance:
+```bash
+curl -X GET http://localhost:5001/balance?address=wallet_address
+```
 
-    Проверьте корректность транзакций и майнинга.
+Mine a block:
+```bash
+curl -X POST http://localhost:5001/mine \
+-H "Content-Type: application/json" \
+-d '{
+  "minerAddress": "miner_address"
+}'
+```
 
-🤝 Вклад
+---
 
-Будем рады вашему участию!
-Создавайте issues или отправляйте pull requests.
-📜 Лицензия
+## 🧪 Testing
 
-Проект распространяется под лицензией MIT.
-📧 Контакты
+1. Start the server
+2. Open web interface at http://localhost:3000
+3. Test core functionality:
+   - Wallet registration
+   - Transaction creation
+   - Block mining
+   - Blockchain reset
+   - API endpoints using curl or Postman
 
-Автор: Almaz Toktassin
-📬 Email: almaztok8@gmail.com
-💻 GitHub: nighbee
+---
+
+## 🤝 Contributing
+
+We welcome contributions!
+- Create issues to discuss problems
+- Submit pull requests with improvements
+- Share ideas for project development
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 📧 Contact
+
+Author: Almaz Toktassin
+- 📬 Email: almaztok8@gmail.com
+- 💻 GitHub: nighbee
