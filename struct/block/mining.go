@@ -18,9 +18,6 @@ func (bc *Blockchain) Mining() bool {
 	bc.mux.Lock()
 	defer bc.mux.Unlock()
 
-	// Log out blockchain
-	// bc.Print() // TODO: Remove debug
-
 	//* DEBUG #Consensus Wallet registration mining should be done some where else
 	// Don't mine when there is no transaction and blockchain already has few blocks
 	if len(bc.transactionPool) == 0 {
