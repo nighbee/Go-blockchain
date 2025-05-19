@@ -78,6 +78,11 @@ func (bc *Blockchain) AddTransaction(sender string,
 	// Add the transaction to the transaction pool
 	bc.transactionPool = append(bc.transactionPool, t)
 
+	// Save blockchain after adding transaction
+	if err := bc.SaveBlockchain(); err != nil {
+		log.Printf("ERROR: Failed to save blockchain after adding transaction: %v", err)
+	}
+
 	// Return true and no error
 	return true, nil
 }

@@ -4,24 +4,33 @@ import { createWallet } from '../api';
 export const WalletContext = createContext();
 
 export const WalletProvider = ({ children }) => {
-    const [wallets, setWallets] = useState(() => {
-        try {
-            const savedWallets = localStorage.getItem('blockchain_wallets');
-            return savedWallets ? JSON.parse(savedWallets) : [];
-        } catch (err) {
-            console.error('Error loading wallets from localStorage:', err);
-            return [];
-        }
-    });
+    const [wallets, setWallets] = useState([]);
 
-    // Save wallets to localStorage whenever they change
+    // Fetch existing wallets from the blockchain when component mounts
     useEffect(() => {
-        try {
-            localStorage.setItem('blockchain_wallets', JSON.stringify(wallets));
-        } catch (err) {
-            console.error('Error saving wallets to localStorage:', err);
-        }
-    }, [wallets]);
+        const fetchExistingWallets = async () => {
+            try {
+                const response = await fetch('http://localhost:5001/wallets');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch wallets');
+                }
+                const data = await response.json();
+                // Add existing wallets to the context
+                if (data.wallets && Array.isArray(data.wallets)) {
+                    const walletObjects = data.wallets.map(address => ({
+                        address: address,
+                        publicKey: '', // These will be empty for existing wallets
+                        privateKey: '' // These will be empty for existing wallets
+                    }));
+                    setWallets(walletObjects);
+                }
+            } catch (err) {
+                console.error('Error fetching wallets:', err);
+            }
+        };
+
+        fetchExistingWallets();
+    }, []);
 
     const registerWallet = async (wallet) => {
         try {

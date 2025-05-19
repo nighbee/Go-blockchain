@@ -1,7 +1,6 @@
 package block
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -40,6 +39,11 @@ func (bc *Blockchain) Mining() bool {
 	// Find a new proof of work and create a new block
 	previousHash := bc.LastBlock().GetHash()
 	bc.CreateBlock(bc.transactionPool, previousHash)
+
+	// Save blockchain after successful mining
+	if err := bc.SaveBlockchain(); err != nil {
+		log.Printf("ERROR: Failed to save blockchain after mining: %v", err)
+	}
 
 	// Log a successful mining operation
 	// #debug
@@ -115,54 +119,6 @@ func (bc *Blockchain) ValidChain(chain []*Block) bool {
 	return true
 }
 
-func (bc *Blockchain) ResolveConflicts() bool {
-	// Initialize variables to track the longest chain and its length
-	var longestChain []*Block = nil
-	maxLength := len(bc.chain)
-
-	for _, n := range bc.neighbors {
-		fmt.Println("Resolve conflict with ", n)
-
-		endpoint := fmt.Sprintf("%s/chain", n)
-
-		resp, err := http.Get(endpoint)
-		if err != nil {
-
-			log.Printf("ERROR: Failed to fetch chain from neighbor %s: %v", n, err)
-			continue // Skip to the next neighbor in case of error
-		}
-
-		if resp.StatusCode == http.StatusOK {
-			var bcResp Blockchain
-			decoder := json.NewDecoder(resp.Body)
-
-			err := decoder.Decode(&bcResp)
-			if err != nil {
-				log.Printf("ERROR: Failed to decode JSON response from neighbor %s: %v", n, err)
-				continue // Skip to the next neighbor in case of error
-			}
-
-			chain := bcResp.Chain()
-
-			if len(chain) > maxLength && bc.ValidChain(chain) {
-				maxLength = len(chain)
-				longestChain = chain
-			}
-		} else {
-			log.Printf("WARNING: Failed to fetch chain from neighbor %s. Status code: %d", n, resp.StatusCode)
-		}
-	}
-
-	if longestChain != nil {
-		bc.chain = longestChain
-		log.Printf("INFO: Resolved conflicts. Replaced blockchain with the longest valid chain.")
-		return true
-	}
-
-	log.Printf("INFO: No longer valid chain found among neighbors. No conflicts resolved.")
-	return false
-}
-
 func (bc *Blockchain) RegisterNewWallet(blockchainAddress string, message string) bool {
 
 	_, err := bc.AddTransaction(MINING_SENDER, blockchainAddress, message, 0, nil, nil)
@@ -175,6 +131,7 @@ func (bc *Blockchain) RegisterNewWallet(blockchainAddress string, message string
 
 	return true
 }
+
 func (bc *Blockchain) CalculateTotalBalance(blockchainAddress string) (float32, error) {
 	var totalBalance float32 = 0.0
 	addressFound := false

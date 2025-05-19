@@ -1,22 +1,23 @@
 package handlers
 
 import (
-	"log"
+	"encoding/json"
 	"net/http"
 )
 
-func (h *BlockchainServerHandler) Reset(w http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case http.MethodPost:
-		// Reset the blockchain
-		h.server.GetBlockchain().Reset()
-
-		// Return success response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Blockchain reset successfully"))
-
-	default:
-		log.Printf("ERROR: Invalid HTTP Method: %s", req.Method)
-		w.WriteHeader(http.StatusBadRequest)
+// Reset handles the reset request
+func (h *BlockchainServerHandler) Reset(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
+
+	// Reset the blockchain
+	h.server.GetBlockchain().Reset()
+
+	// Return success response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Blockchain has been reset successfully",
+	})
 }
