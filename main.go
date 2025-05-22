@@ -52,25 +52,6 @@ func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
 			log.Printf("publicKey %v", minersWallet.PublicKeyStr())
 			log.Printf("blockchainAddress %v", minersWallet.BlockchainAddress())
 
-			// Create a sender wallet for transactions
-			senderWallet := wallet.NewWallet()
-
-			// Add real transactions and mine blocks
-			transaction1 := block.NewTransaction("Payment for services", "recipient_1", "sender_1", 25)
-			signature1 := utils.Sign(senderWallet.PrivateKey(), transaction1)
-			bc.AddTransaction("sender_1", "recipient_1", "Payment for services", 25, senderWallet.PublicKey(), signature1)
-			bc.Mining()
-
-			transaction2 := block.NewTransaction("Payment for goods", "recipient_2", "sender_2", 20.0)
-			signature2 := utils.Sign(senderWallet.PrivateKey(), transaction2)
-			bc.AddTransaction("sender_2", "recipient_2", "Payment for goods", 20.0, senderWallet.PublicKey(), signature2)
-			bc.Mining()
-
-			transaction3 := block.NewTransaction("Payment for rent", "recipient_3", "sender_3", 30)
-			signature3 := utils.Sign(senderWallet.PrivateKey(), transaction3)
-			bc.AddTransaction("sender_3", "recipient_3", "Payment for rent", 30, senderWallet.PublicKey(), signature3)
-			bc.Mining()
-
 			// Save the new blockchain
 			if err := bc.SaveBlockchain(); err != nil {
 				log.Printf("Error saving new blockchain: %v", err)

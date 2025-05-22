@@ -8,64 +8,36 @@ import (
 	"time"
 )
 
-// ==============================
-// Blockchain Proof and Mining Methods
-// ==============================
-
-// Mining creates a new block and adds it to the blockchain.
 func (bc *Blockchain) Mining() bool {
-	// Lock the blockchain while mining
+
 	bc.mux.Lock()
 	defer bc.mux.Unlock()
-
-	//* DEBUG #Consensus Wallet registration mining should be done some where else
-	// Don't mine when there is no transaction and blockchain already has few blocks
 	if len(bc.transactionPool) == 0 {
 		return false
 	}
-
-	// Add a mining reward transaction
 	_, err := bc.AddTransaction(MINING_SENDER, bc.blockchainAddress, "MINING REWARD", MINING_REWARD, nil, nil)
-
-	// If an error occurred adding the transaction, log the error and return false
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		return false
 	}
-
-	// Find a new proof of work and create a new block
 	previousHash := bc.LastBlock().GetHash()
 	bc.CreateBlock(bc.transactionPool, previousHash)
-
-	// Save blockchain after successful mining
 	if err := bc.SaveBlockchain(); err != nil {
 		log.Printf("ERROR: Failed to save blockchain after mining: %v", err)
 	}
-
-	// Log a successful mining operation
-	// #debug
 	log.Println("action=mining, status=success")
-
-	// Send a consensus request to each neighbor
 	for _, n := range bc.neighbors {
-
 		fmt.Println("Send consensus to neigbour ", n)
-
 		endpoint := fmt.Sprintf("%s/consensus", n)
 		client := &http.Client{}
 		req, _ := http.NewRequest("PUT", endpoint, nil)
 		resp, err := client.Do(req)
-
-		// If an error occurred making the request, log the error
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 			return false
 		}
-
 		log.Printf("%v", resp)
 	}
-
-	// Return true indicating the mining operation was successful
 	return true
 }
 
