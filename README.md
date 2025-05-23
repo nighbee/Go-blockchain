@@ -80,14 +80,14 @@ The frontend will be available at http://localhost:3000.
 
 🧪 API Endpoints (Sample)
 ```bash
-Endpoint	Method	Description
-/chain	GET	Get full blockchain
-/transactions	POST	Submit a new transaction
-/wallet/register	POST	Create a new wallet
-/mine	GET	Mine a new block
-/balance?address=	GET	Get wallet balance
-/consensus	PUT	Trigger consensus among nodes
-/reset	POST	Reset blockchain to genesis state
+Endpoint	        Method	Description
+/chain	          GET	    Get full blockchain
+/transactions	    POST	  Submit a new transaction
+/wallet/register	POST	  Create a new wallet
+/mine	            GET	    Mine a new block
+/balance?address=	GET	    Get wallet balance
+/consensus	      PUT	    Trigger consensus among nodes
+/reset	          POST	  Reset blockchain to genesis state
 ```
 🛡️ Security Features
 ECDSA digital signatures for transaction authentication
