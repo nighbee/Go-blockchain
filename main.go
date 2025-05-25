@@ -63,8 +63,6 @@ func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
 	}
 	return bc
 }
-
-// enableCORS is a middleware function that adds CORS headers to the response.
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")                                // Allow all origins
@@ -72,7 +70,6 @@ func enableCORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // Allowed headers
 		w.Header().Set("Access-Control-Allow-Credentials", "true")                        // Allow credentials
 
-		// Handle preflight requests
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -103,7 +100,6 @@ func (bcs *BlockchainServer) Run() {
 	router.HandleFunc("/nodes", handler.GetNodes)
 	router.HandleFunc("/reset", handler.Reset)
 	router.HandleFunc("/sign", handler.HandleSign).Methods("POST")
-	// Chain middlewares: enableCORS -> LoggingMiddleware
 	corsAndLoggingHandler := middleware.LoggingMiddleware(enableCORS(router))
 
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+strconv.Itoa(int(bcs.Port())), corsAndLoggingHandler))
