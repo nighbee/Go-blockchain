@@ -110,3 +110,9 @@ REST API design
 Digital signature cryptography (ECDSA)
 
 React component-based UI design
+
+---
+
+> 💻 Developed by **Almaz Toktassin**  
+> Personal project exploring blockchain systems and backend engineering with Go.
+
