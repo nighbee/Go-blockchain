@@ -1,15 +1,43 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { WalletContext } from './WalletContext';
 import { TransactionContext } from './TransactionContext';
+import { getBlockchain } from './api';
 
 const API_URL = 'http://localhost:5001';
 
 function Mining() {
     const { wallets } = useContext(WalletContext);
-    const { miningHistory, addMiningRecord } = useContext(TransactionContext);
+    const { addMiningRecord } = useContext(TransactionContext);
     const [selectedWallet, setSelectedWallet] = useState('');
     const [miningStatus, setMiningStatus] = useState('');
     const [isMining, setIsMining] = useState(false);
+    const [miningRewards, setMiningRewards] = useState([]);
+
+    // Fetch mining rewards from blockchain
+    useEffect(() => {
+        const fetchMiningRewards = async () => {
+            try {
+                const data = await getBlockchain();
+                if (data.chain && data.chain.length > 0) {
+                    // Collect all mining reward transactions
+                    const rewards = data.chain.flatMap(block => 
+                        (block.transactions || [])
+                            .filter(tx => tx.message === "MINING REWARD")
+                            .map(tx => ({
+                                ...tx,
+                                timestamp: new Date(block.timestamp * 1000).toLocaleString(),
+                                blockIndex: block.index,
+                                blockHash: block.hash
+                            }))
+                    );
+                    setMiningRewards(rewards);
+                }
+            } catch (err) {
+                console.error('Error fetching mining rewards:', err);
+            }
+        };
+        fetchMiningRewards();
+    }, []);
 
     const handleMine = async () => {
         if (!selectedWallet) {
@@ -39,6 +67,20 @@ function Mining() {
                     reward: data.reward,
                     status: 'success'
                 });
+                // Refresh mining rewards after successful mining
+                const blockchainData = await getBlockchain();
+                if (blockchainData.chain && blockchainData.chain.length > 0) {
+                    const latestBlock = blockchainData.chain[blockchainData.chain.length - 1];
+                    const newReward = latestBlock.transactions.find(tx => tx.message === "MINING REWARD");
+                    if (newReward) {
+                        setMiningRewards(prev => [{
+                            ...newReward,
+                            timestamp: new Date(latestBlock.timestamp * 1000).toLocaleString(),
+                            blockIndex: latestBlock.index,
+                            blockHash: latestBlock.hash
+                        }, ...prev]);
+                    }
+                }
             } else {
                 setMiningStatus(`Mining failed: ${data.error}`);
                 addMiningRecord({
@@ -62,16 +104,11 @@ function Mining() {
             <h2>Mining</h2>
             <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '10px' }}>
-                    Select Wallet:
+                    Select Wallet to Mine:
                     <select
                         value={selectedWallet}
                         onChange={(e) => setSelectedWallet(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            marginTop: '5px',
-                            borderRadius: '4px'
-                        }}
+                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                     >
                         <option value="">Select a wallet</option>
                         {wallets.map((wallet, index) => (
@@ -81,17 +118,17 @@ function Mining() {
                         ))}
                     </select>
                 </label>
-                
+
                 <button
                     onClick={handleMine}
                     disabled={isMining || !selectedWallet}
                     style={{
                         padding: '10px 20px',
-                        backgroundColor: isMining ? '#ccc' : '#007bff',
+                        backgroundColor: '#007bff',
                         color: 'white',
                         border: 'none',
                         borderRadius: '5px',
-                        cursor: isMining ? 'not-allowed' : 'pointer',
+                        cursor: isMining || !selectedWallet ? 'not-allowed' : 'pointer',
                     }}
                 >
                     {isMining ? 'Mining...' : 'Start Mining'}
@@ -110,27 +147,28 @@ function Mining() {
             )}
 
             <h3>Mining History</h3>
-            {miningHistory.length === 0 ? (
-                <p>No mining history yet.</p>
+            {miningRewards.length === 0 ? (
+                <p>No mining rewards yet.</p>
             ) : (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {miningHistory.map((record, index) => (
-                        <li
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    {miningRewards.map((reward, index) => (
+                        <div
                             key={index}
                             style={{
-                                border: '1px solid #ccc',
-                                padding: '10px',
-                                margin: '5px 0',
+                                border: '1px solid #ddd',
+                                padding: '15px',
+                                marginBottom: '10px',
                                 borderRadius: '5px',
-                                backgroundColor: record.status === 'success' ? '#d4edda' : '#f8d7da'
+                                backgroundColor: '#f9f9f9'
                             }}
                         >
-                            <p><strong>Time:</strong> {record.timestamp}</p>
-                            {record.reward && <p><strong>Reward:</strong> {record.reward} coins</p>}
-                            {record.error && <p><strong>Error:</strong> {record.error}</p>}
-                        </li>
+                            <p><strong>Time:</strong> {reward.timestamp}</p>
+                            <p><strong>Block:</strong> #{reward.blockIndex}</p>
+                            <p><strong>Miner:</strong> {reward.recipientBlockchainAddress}</p>
+                            <p><strong>Reward:</strong> {reward.value} coins</p>
+                        </div>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );

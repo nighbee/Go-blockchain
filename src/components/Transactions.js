@@ -1,16 +1,50 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { WalletContext } from './WalletContext';
 import { TransactionContext } from './TransactionContext';
+import { getBlockchain } from './api';
 
 function Transactions() {
     const { wallets } = useContext(WalletContext);
-    const { transactions, addTransaction } = useContext(TransactionContext);
+    const { addTransaction } = useContext(TransactionContext);
     const [senderAddress, setSenderAddress] = useState('');
     const [recipientAddress, setRecipientAddress] = useState('');
     const [message, setMessage] = useState('');
     const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [blockchainTransactions, setBlockchainTransactions] = useState([]);
+
+    // Function to fetch transactions from blockchain
+    const fetchTransactions = async () => {
+        try {
+            const data = await getBlockchain();
+            if (data.chain && data.chain.length > 0) {
+                // Collect all regular transactions (excluding mining rewards and registrations)
+                const regularTransactions = data.chain.flatMap(block => 
+                    (block.transactions || [])
+                        .filter(tx => 
+                            tx.message !== "MINING REWARD" && 
+                            tx.message !== "REGISTER USER WALLET"
+                        )
+                        .map(tx => ({
+                            ...tx,
+                            timestamp: new Date(block.timestamp * 1000).toLocaleString(),
+                            blockIndex: block.index,
+                            blockHash: block.hash
+                        }))
+                );
+                setBlockchainTransactions(regularTransactions);
+            }
+        } catch (err) {
+            console.error('Error fetching transactions:', err);
+            setError('Failed to load transactions');
+        }
+    };
+
+    // Fetch transactions on component mount
+    useEffect(() => {
+        fetchTransactions();
+    }, []);
 
     const handleSubmitTransaction = async (e) => {
         e.preventDefault();
@@ -84,19 +118,14 @@ function Transactions() {
                 throw new Error(errorData.message || 'Failed to submit transaction');
             }
 
-            const newTransaction = await submitResponse.json();
-            
-            // Add transaction to global state
-            addTransaction({
-                ...transactionPayload,
-                status: 'success'
-            });
-
             // Clear form
             setMessage('');
             setAmount('');
             setSenderAddress('');
             setRecipientAddress('');
+
+            // Refresh transaction list after successful transaction
+            await fetchTransactions();
 
         } catch (err) {
             setError(err.message);
@@ -197,11 +226,11 @@ function Transactions() {
             )}
 
             <h3>Transaction History</h3>
-            {transactions.length === 0 ? (
+            {blockchainTransactions.length === 0 ? (
                 <p>No transactions yet</p>
             ) : (
                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    {transactions.map((tx, index) => (
+                    {blockchainTransactions.map((tx, index) => (
                         <div
                             key={index}
                             style={{
@@ -213,11 +242,11 @@ function Transactions() {
                             }}
                         >
                             <p><strong>Time:</strong> {tx.timestamp}</p>
+                            <p><strong>Block:</strong> #{tx.blockIndex}</p>
                             <p><strong>From:</strong> {tx.senderBlockchainAddress}</p>
                             <p><strong>To:</strong> {tx.recipientBlockchainAddress}</p>
                             <p><strong>Amount:</strong> {tx.value}</p>
                             <p><strong>Message:</strong> {tx.message}</p>
-                            <p><strong>Status:</strong> {tx.status || 'Pending'}</p>
                         </div>
                     ))}
                 </div>

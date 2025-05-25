@@ -73,7 +73,8 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
-	success, err := h.server.GetBlockchain().AddTransaction(
+	bc := h.server.GetBlockchain()
+	success, err := bc.AddTransaction(
 		txReq.SenderBlockchainAddress,
 		txReq.RecipientBlockchainAddress,
 		txReq.Message,
@@ -89,10 +90,25 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
+	// Mine the block with the transaction
+	success, err = bc.MineBlock(txReq.SenderBlockchainAddress)
+	if err != nil {
+		log.Printf("ERROR: Failed to mine block: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("Failed to mine block: %v", err)})
+		return
+	}
+
+	if !success {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Failed to mine block"})
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Transaction created successfully",
+		"message": "Transaction created and mined successfully",
 		"status":  "success",
 	})
 }

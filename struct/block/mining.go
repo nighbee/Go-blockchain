@@ -87,14 +87,22 @@ func (bc *Blockchain) ValidChain(chain []*Block) bool {
 }
 
 func (bc *Blockchain) RegisterNewWallet(blockchainAddress string, message string) bool {
-
+	// Add the registration transaction
 	_, err := bc.AddTransaction(MINING_SENDER, blockchainAddress, message, 0, nil, nil)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		return false
 	}
 
-	bc.StartMining()
+	// Create a new block with just the registration transaction
+	previousHash := bc.LastBlock().GetHash()
+	bc.CreateBlock(bc.transactionPool, previousHash)
+
+	// Save the blockchain state
+	if err := bc.SaveBlockchain(); err != nil {
+		log.Printf("ERROR: Failed to save blockchain after wallet registration: %v", err)
+		return false
+	}
 
 	return true
 }
