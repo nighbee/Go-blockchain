@@ -1,190 +1,112 @@
-# Blockchain Server
+# 🧱 Go-Blockchain
 
-![Go](https://img.shields.io/badge/Go-1.20-blue)
-![React](https://img.shields.io/badge/React-18.2.0-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-
-## �� Description
-
-Blockchain Server is a blockchain implementation in Go with a React frontend. The project supports block creation, mining, wallet registration, and transaction management through REST API. A key feature is the ability to save blockchain state to a JSON file and reset the blockchain to its initial state.
+A fully functional blockchain system written in **Go (Golang)** with a **React-based web interface**. This project includes core blockchain features such as Proof of Work, wallet management with ECDSA keys, transaction processing, a REST API, and multi-node network simulation.
 
 ---
 
-## �� Key Features
+## 🚀 Features
 
-- 🔗 **Block Mining** — creation of new blocks with transactions and mining rewards
-- 👛 **Wallet Management** — registration and tracking of wallets in the blockchain
-- �� **Transactions** — creation and validation of transactions between wallets
-- 🔄 **State Persistence** — automatic saving of blockchain state to JSON file
-- 🗑️ **Blockchain Reset** — ability to reset to initial state
-- 🤝 **Consensus** — conflict resolution between network nodes
-- 🌐 **REST API** — comprehensive API for blockchain interaction
-- �� **Security** — ECDSA signatures for transaction validation
-- 📊 **Real-time Updates** — live blockchain state monitoring
+### ✅ Core Blockchain Features
+- Block creation with SHA-256 hashing
+- Mining with Proof-of-Work (configurable difficulty)
+- Wallets with public/private key pairs (ECDSA)
+- Secure transaction processing with digital signatures
+- Persistent blockchain state (JSON-based storage)
 
----
+### 🌐 Web Interface (Frontend)
+- Blockchain Explorer (View all blocks and transactions)
+- Wallet creation and management
+- Real-time transaction creation and monitoring
+- Mining interface
+- Node overview panel
 
-## 🛠️ Technologies
-
-- **Backend**: Go
-- **Frontend**: React
-- **HTTP Framework**: Gorilla Mux
-- **Data Storage**: JSON files
-- **Cryptography**: ECDSA for transaction signing
-- **API**: RESTful architecture
+### 🌍 Network Features
+- Multi-node simulation (localhost ports)
+- Neighbor discovery and dynamic sync
+- Consensus algorithm to resolve forks
+- RESTful API to interact with blockchain
 
 ---
 
 ## 📂 Project Structure
-
-```plaintext
-├── struct/
-│   ├── block/             # Blockchain logic
-│   │   ├── blockchain.go  # Core blockchain logic
-│   │   ├── mining.go      # Block mining
-│   │   ├── transaction.go # Transactions
-│   │   └── storage.go     # State persistence
-│   ├── wallet/            # Wallet implementation
-│   └── utils/             # Utility functions
-├── server/
-│   ├── handlers/          # API handlers
-│   └── middleware/        # CORS and logging
-├── src/                   # Frontend React application
-├── data/                  # Blockchain data storage
-├── main.go               # Entry point
-└── go.mod                # Go dependencies
+```bash
+Go-blockchain/
+├── backend/
+│ ├── blockchain/ # Core blockchain logic (blocks, transactions, mining, wallets)
+│ ├── server/ # API server and handlers
+│ ├── middleware/ # CORS and logging
+│ └── main.go # Application entry point
+│
+├── frontend/
+│ ├── src/components/ # React components (Wallet, Transactions, Blockchain, Mining)
+│ ├── src/api.js # API client
+│ └── src/App.js # Main app routing
+│
+├── data/ # Blockchain state (JSON file)
+└── README.md
 ```
 
 ---
 
-## 📦 Installation and Setup
+## ⚙️ Installation
 
-### Backend
+### 🔧 Prerequisites
+- [Go](https://go.dev/doc/install)
+- [Node.js & npm](https://nodejs.org/)
+- Git
 
-1. Install Go
-2. Clone the repository:
+### 📦 Backend Setup
+
 ```bash
-git clone https://github.com/your-username/blockchain-server.git
-cd blockchain-server
+git clone https://github.com/nighbee/Go-blockchain.git
+cd Go-blockchain/backend
 ```
-
-3. Install dependencies:
-```bash
+# Install dependencies
 go mod tidy
-```
 
-4. Start the server:
+# Run node on port 5001
 ```bash
-go run main.go
+PORT=5001 go run main.go
 ```
+To simulate multiple nodes (on ports 5002 and 5003), use the provided batch script (run_nodes.bat) or manually set different PORT values.
 
-### Frontend
-
-1. Navigate to src directory:
+💻 Frontend Setup
 ```bash
-cd src
-```
-
-2. Install dependencies:
-```bash
+cd Go-blockchain/frontend
 npm install
-```
-
-3. Start the application:
-```bash
 npm start
 ```
+The frontend will be available at http://localhost:3000.
 
----
-
-## 📖 API Documentation
-
-### REST API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /chain | Get current blockchain |
-| GET | /wallets | Get list of registered wallets |
-| POST | /wallet/register | Register new wallet |
-| POST | /transactions | Add new transaction |
-| GET | /balance | Get wallet balance |
-| POST | /mine | Mine new block |
-| POST | /reset | Reset blockchain to initial state |
-| GET | /consensus | Run consensus process |
-| GET | /nodes | Get connected nodes |
-| POST | /sign | Sign transaction |
-
-### API Examples
-
-Register a wallet:
+🧪 API Endpoints (Sample)
 ```bash
-curl -X POST http://localhost:5001/wallet/register \
--H "Content-Type: application/json"
+| Endpoint            | Method | Description                       |
+| ------------------- | ------ | --------------------------------- |
+| `/chain`            | GET    | Get full blockchain               |
+| `/transactions`     | POST   | Submit a new transaction          |
+| `/wallet/register`  | POST   | Create a new wallet               |
+| `/mine`             | GET    | Mine a new block                  |
+| `/balance?address=` | GET    | Get wallet balance                |
+| `/consensus`        | PUT    | Trigger consensus among nodes     |
+| `/reset`            | POST   | Reset blockchain to genesis state |
+
 ```
+🛡️ Security Features
+ECDSA digital signatures for transaction authentication
 
-Create a transaction:
-```bash
-curl -X POST http://localhost:5001/transactions \
--H "Content-Type: application/json" \
--d '{
-  "sender": "sender_address",
-  "recipient": "recipient_address",
-  "value": 10.0,
-  "message": "Payment"
-}'
-```
+Hash validation for block integrity
 
-Reset blockchain:
-```bash
-curl -X POST http://localhost:5001/reset
-```
+Balance verification before approving transactions
 
-Get wallet balance:
-```bash
-curl -X GET http://localhost:5001/balance?address=wallet_address
-```
+Mutex locks to prevent race conditions in concurrent mining or syncing
 
-Mine a block:
-```bash
-curl -X POST http://localhost:5001/mine \
--H "Content-Type: application/json" \
--d '{
-  "minerAddress": "miner_address"
-}'
-```
+🧠 Key Concepts Learned
+Blockchain architecture and decentralization
 
----
+Go concurrency (mutex, goroutines)
 
-## 🧪 Testing
+REST API design
 
-1. Start the server
-2. Open web interface at http://localhost:3000
-3. Test core functionality:
-   - Wallet registration
-   - Transaction creation
-   - Block mining
-   - Blockchain reset
-   - API endpoints using curl or Postman
+Digital signature cryptography (ECDSA)
 
----
-
-## 🤝 Contributing
-
-We welcome contributions!
-- Create issues to discuss problems
-- Submit pull requests with improvements
-- Share ideas for project development
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License.
-
----
-
-## 📧 Contact
-
-Author: Almaz Toktassin
-- 📬 Email: almaztok8@gmail.com
-- 💻 GitHub: nighbee
+React component-based UI design
