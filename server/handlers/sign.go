@@ -31,7 +31,6 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Parse request body
 	var signReq SignRequest
 	if err := json.NewDecoder(req.Body).Decode(&signReq); err != nil {
 		log.Printf("ERROR: Failed to decode request body: %v", err)
@@ -40,7 +39,6 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Validate required fields
 	if signReq.SenderBlockchainAddress == "" {
 		log.Printf("ERROR: Missing senderBlockchainAddress")
 		w.WriteHeader(http.StatusBadRequest)
@@ -78,14 +76,12 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Log the request details
 	log.Printf("Signing transaction: sender=%s, recipient=%s, message=%s, value=%f",
 		signReq.SenderBlockchainAddress,
 		signReq.RecipientBlockchainAddress,
 		signReq.Message,
 		signReq.Value)
 
-	// Create transaction
 	tx := block.NewTransaction(
 		signReq.SenderBlockchainAddress,
 		signReq.RecipientBlockchainAddress,
@@ -93,7 +89,6 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		signReq.Value,
 	)
 
-	// Parse public key
 	publicKey, err := utils.PublicKeyFromString(signReq.PublicKey)
 	if err != nil {
 		log.Printf("ERROR: Invalid public key: %v", err)
@@ -102,7 +97,6 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Parse private key
 	privateKey, err := utils.PrivateKeyFromString(signReq.PrivateKey, publicKey)
 	if err != nil {
 		log.Printf("ERROR: Invalid private key: %v", err)
@@ -111,7 +105,6 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Sign the transaction
 	m, err := json.Marshal(tx)
 	if err != nil {
 		log.Printf("ERROR: Failed to marshal transaction: %v", err)
@@ -121,11 +114,9 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 	}
 	log.Printf("Sign: Marshaled transaction: %s", string(m))
 
-	// Create a hash of the transaction data
 	hash := sha256.Sum256(m)
 	log.Printf("Sign: Transaction hash: %x", hash)
 
-	// Sign the hash with the private key
 	r, s, err := ecdsa.Sign(rand.Reader, privateKey, hash[:])
 	if err != nil {
 		log.Printf("ERROR: Failed to sign transaction: %v", err)
@@ -134,15 +125,12 @@ func (h *BlockchainServerHandler) HandleSign(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Create signature object
 	signature := &utils.Signature{R: r, S: s}
 
-	// Log the signature details for debugging
 	log.Printf("Generated signature R: %x", r)
 	log.Printf("Generated signature S: %x", s)
 	log.Printf("Generated signature string: %s", signature.String())
 
-	// Verify the signature immediately after generation
 	valid := ecdsa.Verify(&privateKey.PublicKey, hash[:], r, s)
 	if !valid {
 		log.Printf("ERROR: Generated signature failed immediate verification")

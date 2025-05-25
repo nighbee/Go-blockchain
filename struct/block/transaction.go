@@ -12,8 +12,6 @@ import (
 	"strings"
 )
 
-// --- Types ---
-// Transaction represents a single transaction in the blockchain.
 type Transaction struct {
 	message                    string
 	recipientBlockchainAddress string
@@ -21,7 +19,6 @@ type Transaction struct {
 	value                      float32
 }
 
-// TransactionRequest represents a request to create a new transaction.
 type TransactionRequest struct {
 	Message                    *string  `json:"message"`
 	RecipientBlockchainAddress *string  `json:"recipientBlockchainAddress"`
@@ -31,7 +28,6 @@ type TransactionRequest struct {
 	Value                      *float32 `json:"value"`
 }
 
-// AmountResponse represents the response with the amount in a transaction.
 type BalanceResponse struct {
 	Balance float32 `json:"balance"`
 	Error   string  `json:"error"`
@@ -44,7 +40,6 @@ func (bc *Blockchain) AddTransaction(sender string,
 	senderPublicKey *ecdsa.PublicKey,
 	s *utils.Signature) (bool, error) {
 
-	// Create a new transaction with the correct field order
 	t := &Transaction{
 		senderBlockchainAddress:    sender,
 		recipientBlockchainAddress: recipient,
@@ -52,60 +47,48 @@ func (bc *Blockchain) AddTransaction(sender string,
 		value:                      value,
 	}
 
-	// If the sender is the mining address, add the transaction to the pool and return true
 	if sender == MINING_SENDER {
 		bc.transactionPool = append(bc.transactionPool, t)
 		return true, nil
 	}
 
-	// If the transaction signature is not verified, return false and an error
 	if !bc.VerifyTransactionSignature(senderPublicKey, s, t) {
 		return false, fmt.Errorf("ERROR: Verify Transaction")
 	}
 
-	// Calculate the total balance of the sender
 	balance, err := bc.CalculateTotalBalance(sender)
 	if err != nil {
-		// If there is an error calculating the balance, return false and the error
 		return false, fmt.Errorf("ERROR: CalculateTotalAmount: %v", err)
 	}
 
-	// If the sender's balance is less than the value of the transaction, return false and an error
 	if balance < value {
 		return false, fmt.Errorf("ERROR: Not enough balance in a wallet")
 	}
 
-	// Add the transaction to the transaction pool
 	bc.transactionPool = append(bc.transactionPool, t)
 
-	// Save blockchain after adding transaction
 	if err := bc.SaveBlockchain(); err != nil {
 		log.Printf("ERROR: Failed to save blockchain after adding transaction: %v", err)
 	}
 	return true, nil
 }
 
-// Empty the transaction pool the Blockchain
 func (bc *Blockchain) ClearTransactionPool() {
 	bc.transactionPool = bc.transactionPool[:0]
 }
 
-// Create a new transaction
 func (bc *Blockchain) CreateTransaction(sender string, recipient string, message string, value float32,
 	senderPublicKey *ecdsa.PublicKey, s *utils.Signature) (bool, error) {
 
 	isTransacted, err := bc.AddTransaction(sender, recipient, message, value, senderPublicKey, s)
 
-	// If there was an error while adding the transaction, log the error and return it
 	if err != nil {
 
 		log.Printf("ERROR: %v", err)
 		return false, err
 	}
 
-	// If the transaction was added successfully, broadcast it to the network
 	if isTransacted {
-		// Reverse engineer this part of the code
 		for _, n := range bc.neighbors {
 			publicKeyStr := fmt.Sprintf("%064x%064x", senderPublicKey.X.Bytes(),
 				senderPublicKey.Y.Bytes())
@@ -129,7 +112,6 @@ func (bc *Blockchain) CreateTransaction(sender string, recipient string, message
 	return isTransacted, nil
 }
 
-// Copy the transaction pool
 func (bc *Blockchain) CopyTransactionPool() []*Transaction {
 	transactions := make([]*Transaction, 0)
 	for _, t := range bc.transactionPool {
@@ -143,7 +125,6 @@ func (bc *Blockchain) CopyTransactionPool() []*Transaction {
 	return transactions
 }
 
-// NewTransaction creates a new transaction.
 func NewTransaction(sender string, recipient string, message string, value float32) *Transaction {
 	return &Transaction{
 		senderBlockchainAddress:    sender,
@@ -153,12 +134,10 @@ func NewTransaction(sender string, recipient string, message string, value float
 	}
 }
 
-// Get the transaction pool the Blockchain
 func (bc *Blockchain) TransactionPool() []*Transaction {
 	return bc.transactionPool
 }
 
-// Validate checks if the transaction request is valid.
 func (tr *TransactionRequest) Validate() bool {
 	if tr.SenderBlockchainAddress == nil ||
 		tr.RecipientBlockchainAddress == nil ||
@@ -171,20 +150,17 @@ func (tr *TransactionRequest) Validate() bool {
 	return true
 }
 func (bc *Blockchain) VerifyTransactionSignature(senderPublicKey *ecdsa.PublicKey, s *utils.Signature, t *Transaction) bool {
-	// Create a hash of the transaction data
 	m, err := json.Marshal(t)
 	if err != nil {
 		log.Printf("ERROR: Failed to marshal transaction for verification: %v", err)
 		return false
 	}
 
-	// Log the exact data being verified
 	log.Printf("Verifying transaction data: %s", string(m))
 
 	hash := sha256.Sum256(m)
 	log.Printf("Verification hash: %x", hash)
 
-	// Log the signature components
 	log.Printf("Verifying signature R: %x", s.R)
 	log.Printf("Verifying signature S: %x", s.S)
 
@@ -196,7 +172,6 @@ func (bc *Blockchain) VerifyTransactionSignature(senderPublicKey *ecdsa.PublicKe
 	return verified
 }
 
-// Print outputs the details of the transaction.
 func (t *Transaction) Print() {
 	fmt.Printf("%s\n", strings.Repeat("-", 40))
 	fmt.Printf(" senderBlockchainAddress      %s\n", t.senderBlockchainAddress)
@@ -205,7 +180,6 @@ func (t *Transaction) Print() {
 	fmt.Printf(" value                          %.1f\n", t.value)
 }
 
-// MarshalJSON implements the Marshaler interface for the AmountResponse type.
 func (br *BalanceResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Balance float32 `json:"balance"`
@@ -216,7 +190,6 @@ func (br *BalanceResponse) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// MarshalJSON implements the Marshaler interface for the Transaction type.
 func (t *Transaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Message   string  `json:"message"`
@@ -231,7 +204,6 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON implements the Unmarshaler interface for the Transaction type.
 func (t *Transaction) UnmarshalJSON(data []byte) error {
 	v := &struct {
 		Message   *string  `json:"message"`

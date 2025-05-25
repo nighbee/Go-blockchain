@@ -41,7 +41,6 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
-	// Parse request body
 	var txReq TransactionRequest
 	if err := json.NewDecoder(req.Body).Decode(&txReq); err != nil {
 		log.Printf("ERROR: Failed to decode request body: %v", err)
@@ -50,7 +49,6 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
-	// Validate required fields
 	if txReq.SenderBlockchainAddress == "" || txReq.RecipientBlockchainAddress == "" ||
 		txReq.Message == "" || txReq.Value <= 0 || txReq.SenderPublicKey == "" || txReq.Signature == "" {
 		log.Printf("ERROR: Missing required fields")
@@ -59,7 +57,6 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
-	// Parse public key
 	publicKey, err := utils.PublicKeyFromString(txReq.SenderPublicKey)
 	if err != nil {
 		log.Printf("ERROR: Invalid public key: %v", err)
@@ -68,7 +65,6 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
-	// Parse signature
 	signature, err := utils.SignatureFromString(txReq.Signature)
 	if err != nil {
 		log.Printf("ERROR: Invalid signature: %v", err)
@@ -77,7 +73,6 @@ func (h *BlockchainServerHandler) HandlePostTransaction(w http.ResponseWriter, r
 		return
 	}
 
-	// Add transaction to blockchain
 	success, err := h.server.GetBlockchain().AddTransaction(
 		txReq.SenderBlockchainAddress,
 		txReq.RecipientBlockchainAddress,
@@ -120,7 +115,6 @@ func (h *BlockchainServerHandler) HandlePutTransaction(w http.ResponseWriter, re
 		return
 	}
 
-	// Log inputs for debugging
 	log.Printf("Received senderPublicKey: %s", *t.SenderPublicKey)
 	log.Printf("Received signature: %s", *t.Signature)
 

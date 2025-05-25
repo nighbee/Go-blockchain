@@ -41,10 +41,8 @@ func (bc *Blockchain) Mining() bool {
 	return true
 }
 
-// StartMining initiates the mining process.
 func (bc *Blockchain) StartMining() {
 	bc.Mining()
-	// Schedule the next mining operation to occur after MINING_TIMER_SEC seconds.
 	_ = time.AfterFunc(time.Second*MINING_TIMER_SEC, bc.StartMining)
 }
 

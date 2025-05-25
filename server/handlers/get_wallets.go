@@ -9,10 +9,8 @@ import (
 func (h *BlockchainServerHandler) GetWallets(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
-		// Get all wallets from the blockchain
 		wallets := h.server.GetBlockchain().GetWallets()
 
-		// Prepare response
 		response := struct {
 			Wallets []string `json:"wallets"`
 		}{

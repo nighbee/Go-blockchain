@@ -20,8 +20,6 @@ type BlockchainServer interface {
 	Port() uint16
 	GetWallet() *wallet.Wallet
 	GetBlockchain() *block.Blockchain
-	// TODO: Learn interfaces
-	// TODO: Add GetBlockchain() method into controllers
 }
 
 type BlockchainServerHandler struct {
@@ -29,6 +27,5 @@ type BlockchainServerHandler struct {
 }
 
 func NewBlockchainServerHandler(s BlockchainServer) *BlockchainServerHandler {
-	// LogMethods(s)
 	return &BlockchainServerHandler{server: s}
 }

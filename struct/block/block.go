@@ -29,7 +29,6 @@ const (
 	BLOCKCHIN_NEIGHBOR_SYNC_TIME_SEC = 20
 )
 
-// Block represents a block in the blockchain.
 type Block struct {
 	timestamp    int64
 	transactions []*Transaction
@@ -38,7 +37,6 @@ type Block struct {
 	nonce        int
 }
 
-// NewBlock creates a new block with the given parameters.
 func NewBlock(transactions []*Transaction, prevHash string) *Block {
 	return &Block{
 		timestamp:    time.Now().Unix(),
@@ -49,7 +47,6 @@ func NewBlock(transactions []*Transaction, prevHash string) *Block {
 	}
 }
 
-// Accessor methods for the Block attributes.
 func (b *Block) CalculateHash() string {
 	m, err := json.Marshal(struct {
 		Timestamp    int64          `json:"timestamp"`
@@ -103,7 +100,6 @@ func (b *Block) SetNonce(nonce int) {
 	b.nonce = nonce
 }
 
-// Print displays the block's attributes.
 func (b *Block) Print() {
 	fmt.Printf("timestamp       %d\n", b.timestamp)
 	fmt.Printf("nonce           %d\n", b.nonce)
@@ -113,9 +109,6 @@ func (b *Block) Print() {
 	}
 }
 
-// JSON Handling for Block
-
-// MarshalJSON customizes the JSON encoding of the block.
 func (b *Block) MarshalJSON() ([]byte, error) {
 	transactions := b.transactions
 	if transactions == nil {
@@ -134,7 +127,6 @@ func (b *Block) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON customizes the JSON decoding of the block.
 func (b *Block) UnmarshalJSON(data []byte) error {
 	v := &struct {
 		Timestamp    *int64          `json:"timestamp"`
